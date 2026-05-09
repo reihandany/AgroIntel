@@ -17,13 +17,13 @@ nltk.download('stopwords')
 
 # LOAD MODEL & DATA
 try:
-    with open('model_dt_bow.pkl', 'rb') as f:
+    with open('model_dt_tfidf1.pkl', 'rb') as f:
         model = pickle.load(f)
 except FileNotFoundError:
     model = None
 
 try:
-    with open('bow_vectorizer_1gram.pkl', 'rb') as f:
+    with open('tfidf_vectorizer_1gram.pkl', 'rb') as f:
         vectorizer = pickle.load(f)
 except FileNotFoundError:
     vectorizer = None
@@ -83,7 +83,7 @@ with st.sidebar:
     st.markdown("---")
 
     st.success("✅ Model Active")
-    st.caption("Bag of Words + Decision Tree")
+    st.caption("TF-IDF + Decision Tree")
 
 # CUSTOM CSS
 st.markdown("""
@@ -345,7 +345,7 @@ Powered by Natural Language Processing and Machine Learning
 <div>
 <span class="hero-badge">📄 Dataset NLP Agriculture</span>
 <span class="hero-badge">🧠 Decision Tree</span>
-<span class="hero-badge">⚡ Accuracy 90%</span>
+<span class="hero-badge">⚡ Accuracy 98%</span>
 <span class="hero-badge">📊 Text Classification</span>
 </div>
 
@@ -391,7 +391,7 @@ with tab1:
                     font-weight:600;
                     font-size:0.95rem;
                 ">
-                ✅ Active Model: Decision Tree + BoW
+                ✅ Active Model: Decision Tree + TF-IDF 1-Gram
                 </p>
             </div>
             """, unsafe_allow_html=True)
@@ -409,12 +409,6 @@ with tab1:
                         <h1>{prediction}</h1>
                     </div>
                     """, unsafe_allow_html=True)
-
-                    col_m1, col_m2 = st.columns(2)
-                    with col_m1:
-                        st.metric("Confidence", "90%")
-                    with col_m2:
-                        st.metric("Speed", "<200ms")
 
                     # =========================
                     # NLP PIPELINE
@@ -456,6 +450,12 @@ with tab1:
             st.info("🌱 Fertilizer\n\nPotassium fertilizer for crops")
 
             st.info("🚜 Crop Management\n\nHow to improve crop production?")
+            
+            st.info("🐄 Livestock\n\nBest feed for dairy cows")
+
+            st.info("🌾 Agriculture Support\n\nAgriculture loan support")
+
+            st.info("🐟 Aquaculture\n\nFish farming water quality management")
 
             st.info("📦 Other\n\nWeather today in Indonesia")
 
@@ -494,7 +494,7 @@ with tab2:
             st.markdown("""
             <div class="metric-card">
                 <div class="metric-title">Accuracy</div>
-                <div class="metric-value">90%</div>
+                <div class="metric-value">98%</div>
                 <div class="metric-desc">Classification Score</div>
             </div>
             """, unsafe_allow_html=True)
@@ -503,7 +503,7 @@ with tab2:
             st.markdown("""
             <div class="metric-card">
                 <div class="metric-title">Feature</div>
-                <div class="metric-value">BoW</div>
+                <div class="metric-value">TF-IDF 1-Gram</div>
                 <div class="metric-desc">1-Gram Vectorizer</div>
             </div>
             """, unsafe_allow_html=True)
@@ -512,11 +512,11 @@ with tab2:
         st.markdown("## 🔥 Top Keywords")
 
         word_freq = {
-            "answer":102,
-            "suggest":101,
-            "question":100,
-            "ask":100,
-            "control":48
+            "answer":10058,
+            "question":10000,
+            "ask":6796,
+            "water":4260,
+            "spray":3107,
         }
 
         fig3, ax3 = plt.subplots(figsize=(8,4))
@@ -571,34 +571,25 @@ with tab2:
 
             st.markdown("### 🎯 Confusion Matrix")
 
-            fig2, ax2 = plt.subplots(figsize=(5,4))
-
-            sns.heatmap(
-                [[9,1],[0,10]],
-                annot=True,
-                fmt='d',
-                cmap='Greens',
-                cbar=False,
-                ax=ax2
+            st.image(
+                "confusion_matrix_terbaik.png",
+                use_container_width=True
             )
-
-            fig2.patch.set_facecolor('#ffffff')
-
-            st.pyplot(fig2)
-
+            
             st.markdown('</div>', unsafe_allow_html=True)
 
         st.markdown("<br>", unsafe_allow_html=True)
+
         st.markdown("## 🧠 Model Comparison")
 
         model_df = pd.DataFrame({
             "Model":[
-                "BoW 1-gram",
                 "TF-IDF 1-gram",
-                "BoW 2-gram",
-                "TF-IDF 2-gram"
+                "BoW 1-gram",
+                "TF-IDF 2-gram",
+                "BoW 2-gram"
             ],
-            "Accuracy":[0.90,0.85,0.70,0.65]
+            "Accuracy":[0.9825,0.9785,0.8875,0.8840]
         })
 
         st.dataframe(
@@ -624,9 +615,9 @@ with tab2:
                 st.markdown("### 🎯 Model Performance")
 
                 st.json({
-                    "Accuracy": "90%",
-                    "Precision": "88%",
-                    "Recall": "87%",
+                    "Accuracy": "98.25%",
+                    "Precision": "97.85%",
+                    "Recall": "88.75%",
                     "Model": "Decision Tree"
                 })
 
@@ -640,8 +631,7 @@ with tab3:
     with col_info1:
         with st.expander("🎯 About AgroIntel", expanded=True):
             st.markdown("""
-            Machine learning-based agricultural text classification system that identifies agricultural information categories with high accuracy using Decision Tree and Bag of Words (BoW).
-            """)
+            Machine learning-based agricultural text classification system that identifies agricultural information categories using Decision Tree and TF-IDF feature extraction.            """)
         
         with st.expander("📖 How to Use"):
             st.markdown("""
@@ -656,21 +646,21 @@ with tab3:
         with st.expander("🔧 Technology"):
             st.markdown("""
             - **Model:** Decision Tree Classifier
-            - **Features:** Bag of Words (BoW) 1-Gram
+            - **Features:** TF-IDF 1-Gram
             - **Stack:** Scikit-Learn, NLTK, Streamlit
             - **Processing:** Tokenization, Stemming, Stopwords
             """)
         
         with st.expander("❓ FAQ"):
             st.markdown("""
-            **Q: What is Bag of Words (BoW)?**  
-            A: A text representation technique that converts words into numerical features for machine learning models.
+            **Q: What is TF-IDF?**  
+            A: A text representation technique that converts words into numerical features for machine learning models, considering both term frequency and inverse document frequency.
             
             **Q: What languages are supported?**  
             A: English is recommended for optimal performance.
             
             **Q: How accurate is the model?**  
-            A: The model achieved approximately 90% accuracy on the training dataset.
+            A: The model achieved approximately 98% accuracy on the training dataset.
             """)
     
     st.markdown("---")
@@ -680,7 +670,6 @@ with tab3:
         categories = {
             "🌱 Fertilizer": "Fertilizer information",
             "🐛 Pest Control": "Pest control methods",
-            "💧 Irrigation": "Irrigation techniques",
             "🚜 Crop Management": "Crop management strategies",
             "🐄 Livestock": "Livestock care",
             "🌾 Agriculture Support": "Agricultural support services",
