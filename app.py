@@ -53,7 +53,7 @@ def preprocess(text):
 
 # PAGE CONFIG
 st.set_page_config(
-    page_title="AgroIntel Dashboard",
+    page_title="AgroIntel Classifier",
     page_icon="🌱",
     layout="wide"
 )
@@ -327,7 +327,7 @@ st.markdown("""
 <div class="hero-box">
 
 <div class="hero-title">
-🌾 AgroIntel AI
+🌾 AgroIntel Classifier
 </div>
             
 <div style="
@@ -336,18 +336,16 @@ color:#bbf7d0;
 margin-top:-10px;
 margin-bottom:20px;
 ">
-AI-Powered Agriculture NLP Analytics Platform
-</div>
+Intelligent Agricultural Text Classification Platform</div>
 
 <div class="hero-desc">
-Data Mining Dashboard — Prediksi & Analisis Kategori Teks Pertanian
-menggunakan <b>Decision Tree</b> dan <b>TF-IDF</b>
+Powered by Natural Language Processing and Machine Learning
 </div>
 
 <div>
 <span class="hero-badge">📄 Dataset NLP Agriculture</span>
 <span class="hero-badge">🧠 Decision Tree</span>
-<span class="hero-badge">⚡ Akurasi 90%</span>
+<span class="hero-badge">⚡ Accuracy 90%</span>
 <span class="hero-badge">📊 Text Classification</span>
 </div>
 
@@ -356,15 +354,15 @@ menggunakan <b>Decision Tree</b> dan <b>TF-IDF</b>
 
 # TABS
 tab1, tab2, tab3 = st.tabs([
-    "📌 Prediksi",
-    "📊 Analisis Data",
-    "ℹ️ Informasi"
+    "📌 Prediction",
+    "📊 Data Analysis",
+    "ℹ️ Information"
 ])
 
-# TAB PREDIKSI
+# TAB PREDICTION
 with tab1:
 
-    st.markdown("**📌 Input Teks Pertanian**")
+    st.markdown("**📌 Agriculture Text Input**")
 
     if model is None or vectorizer is None:
         st.error("⚠️ Model file tidak ditemukan!")
@@ -398,7 +396,7 @@ with tab1:
             </div>
             """, unsafe_allow_html=True)
 
-            if st.button("🔍 Analisis", use_container_width=True):
+            if st.button("Analyze Text", use_container_width=True):
                 if input_text.strip():
                     with st.spinner("⏳"):
                         processed = preprocess(input_text)
@@ -438,7 +436,7 @@ with tab1:
                         st.success("Stemming")
 
                     # PREPROCESSING RESULT
-                    with st.expander("🔍 Hasil Preprocessing"):
+                    with st.expander("🔍 Preprocessing Result"):
 
                         st.markdown("### Original Text")
                         st.code(input_text)
@@ -447,11 +445,11 @@ with tab1:
                         st.code(processed)
   
                 else:
-                    st.warning("Masukkan teks!")
+                    st.warning("Enter text!")
         
         with col_examples:
 
-            st.markdown("## 📚 Contoh")
+            st.markdown("## 📚 Example")
 
             st.info("🐛 Pest Control\n\nBest pesticide for aphid control?")
 
@@ -461,7 +459,7 @@ with tab1:
 
             st.info("📦 Other\n\nWeather today in Indonesia")
 
-# TAB VISUALISASI
+# TAB DATA ANALYSIS
 with tab2:
 
     if df_sample is None:
@@ -479,7 +477,7 @@ with tab2:
             <div class="metric-card">
                 <div class="metric-title">Total Data</div>
                 <div class="metric-value">{len(df_sample):,}</div>
-                <div class="metric-desc">baris dataset</div>
+                <div class="metric-desc">Dataset Rows</div>
             </div>
             """, unsafe_allow_html=True)
 
@@ -495,9 +493,9 @@ with tab2:
         with col_s3:
             st.markdown("""
             <div class="metric-card">
-                <div class="metric-title">Akurasi</div>
+                <div class="metric-title">Accuracy</div>
                 <div class="metric-value">90%</div>
-                <div class="metric-desc">classification score</div>
+                <div class="metric-desc">Classification Score</div>
             </div>
             """, unsafe_allow_html=True)
 
@@ -505,7 +503,7 @@ with tab2:
             st.markdown("""
             <div class="metric-card">
                 <div class="metric-title">Feature</div>
-                <div class="metric-value">TF-IDF</div>
+                <div class="metric-value">BoW</div>
                 <div class="metric-desc">1-Gram Vectorizer</div>
             </div>
             """, unsafe_allow_html=True)
@@ -542,7 +540,7 @@ with tab2:
 
             st.markdown('<div class="chart-box">', unsafe_allow_html=True)
 
-            st.markdown("### 📊 Distribusi Kategori")
+            st.markdown("### 📊 Category Distribution")
 
             fig1, ax1 = plt.subplots(figsize=(6,4))
 
@@ -558,8 +556,8 @@ with tab2:
             ax1.set_facecolor("#ffffff")
             fig1.patch.set_facecolor('#ffffff')
 
-            ax1.set_xlabel("Kategori", fontsize=12)
-            ax1.set_ylabel("Jumlah", fontsize=12)
+            ax1.set_xlabel("Category", fontsize=12)
+            ax1.set_ylabel("Count", fontsize=12)
 
             plt.xticks(rotation=25)
 
@@ -591,16 +589,16 @@ with tab2:
             st.markdown('</div>', unsafe_allow_html=True)
 
         st.markdown("<br>", unsafe_allow_html=True)
-        st.markdown("## 🧠 Perbandingan Model")
+        st.markdown("## 🧠 Model Comparison")
 
         model_df = pd.DataFrame({
             "Model":[
-                "TF-IDF 1-gram",
                 "BoW 1-gram",
-                "Bigram",
+                "TF-IDF 1-gram",
+                "BoW 2-gram",
                 "TF-IDF 2-gram"
             ],
-            "Accuracy":[0.90,0.85,0.65,0.60]
+            "Accuracy":[0.90,0.85,0.70,0.65]
         })
 
         st.dataframe(
@@ -609,21 +607,21 @@ with tab2:
         )
 
         # ===== DETAIL =====
-        with st.expander("📈 Statistik Detail"):
+        with st.expander("📈 Detailed Statistics"):
 
             col_a1, col_a2 = st.columns(2)
 
             with col_a1:
-                st.markdown("### 📊 Statistik Dataset")
+                st.markdown("### 📊 Dataset Statistics")
 
                 st.json({
                     "Total Records": len(df_sample),
-                    "Jumlah Kategori": int(df_sample['category'].nunique()),
+                    "Number of Categories": int(df_sample['category'].nunique()),
                     "Missing Value": int(df_sample.isnull().sum().sum())
                 })
 
             with col_a2:
-                st.markdown("### 🎯 Performa Model")
+                st.markdown("### 🎯 Model Performance")
 
                 st.json({
                     "Accuracy": "90%",
@@ -635,56 +633,59 @@ with tab2:
 # TAB INFORMASI
 with tab3:
 
-    st.markdown("**ℹ️ Tentang & Panduan**")
+    st.markdown("**ℹ️ About & Guide**")
     
     col_info1, col_info2 = st.columns(2, gap="small")
     
     with col_info1:
-        with st.expander("🎯 Tentang AgroIntel", expanded=True):
+        with st.expander("🎯 About AgroIntel", expanded=True):
             st.markdown("""
-            Sistem klasifikasi teks pertanian berbasis ML yang mengidentifikasi 
-            kategori informasi pertanian dengan akurasi tinggi menggunakan Decision Tree & TF-IDF.
+            Machine learning-based agricultural text classification system that identifies agricultural information categories with high accuracy using Decision Tree and Bag of Words (BoW).
             """)
         
-        with st.expander("📖 Cara Menggunakan"):
+        with st.expander("📖 How to Use"):
             st.markdown("""
-            1. **Input Teks** - Masukkan pertanyaan pertanian
-            2. **Klik Analisis** - Proses teks otomatis
-            3. **Lihat Hasil** - Kategori akan ditampilkan
+            1. **Input Text** - Enter an agricultural question
+            2. **Click Analyze** - Process the text automatically
+            3. **View Results** - The category will be displayed
             
-            **💡 Tips:** Gunakan bahasa Inggris untuk hasil terbaik
+            **💡 Tips:** Use English for the best results
             """)
     
     with col_info2:
-        with st.expander("🔧 Teknologi"):
+        with st.expander("🔧 Technology"):
             st.markdown("""
             - **Model:** Decision Tree Classifier
-            - **Features:** TF-IDF 1-Gram
+            - **Features:** Bag of Words (BoW) 1-Gram
             - **Stack:** Scikit-Learn, NLTK, Streamlit
             - **Processing:** Tokenization, Stemming, Stopwords
             """)
         
         with st.expander("❓ FAQ"):
             st.markdown("""
-            **Q: Apa itu TF-IDF?**  
-            A: Teknik mengubah teks menjadi angka untuk ML
+            **Q: What is Bag of Words (BoW)?**  
+            A: A text representation technique that converts words into numerical features for machine learning models.
             
-            **Q: Bahasa apa yang didukung?**  
-            A: Bahasa Inggris untuk hasil optimal
+            **Q: What languages are supported?**  
+            A: English is recommended for optimal performance.
             
-            **Q: Akurasi seberapa tinggi?**  
-            A: 90% pada dataset training
+            **Q: How accurate is the model?**  
+            A: The model achieved approximately 90% accuracy on the training dataset.
             """)
     
     st.markdown("---")
     
-    with st.expander("📊 Kategori Teks"):
+    with st.expander("📊 Category Distribution"):
         cols = st.columns(2)
         categories = {
-            "🌾 Seed Treatment": "Perlakuan benih",
-            "🐛 Pest Control": "Pengendalian hama",
-            "💧 Irrigation": "Sistem irigasi",
-            "🚜 Crop Advice": "Tips budidaya"
+            "🌱 Fertilizer": "Fertilizer information",
+            "🐛 Pest Control": "Pest control methods",
+            "💧 Irrigation": "Irrigation techniques",
+            "🚜 Crop Management": "Crop management strategies",
+            "🐄 Livestock": "Livestock care",
+            "🌾 Agriculture Support": "Agricultural support services",
+            "🐟 Aquaculture": "Aquaculture practices",
+            "📦 Other": "Other agricultural topics"
         }
         
         for idx, (cat, desc) in enumerate(categories.items()):
@@ -696,7 +697,7 @@ st.markdown("""
 <div style="text-align: center; padding: 15px; margin-top: 20px;
             border-top: 1px solid #30363d;">
 <p style="margin: 0; font-size: 12px; color: #8b949e;">
-🌱 <strong>AgroIntel</strong> • Powered by Streamlit • ML Classification
+🌱 <strong>AgroIntel</strong> • Powered by Streamlit • Agricultural Text Classification
 </p>
 </div>
 """, unsafe_allow_html=True)
