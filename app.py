@@ -327,7 +327,7 @@ st.markdown("""
 <div class="hero-box">
 
 <div class="hero-title">
-🌾 AgroIntel Intelligence
+🌾 AgroIntel AI
 </div>
             
 <div style="
