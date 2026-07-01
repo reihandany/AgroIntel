@@ -1,3 +1,4 @@
+import warnings
 import streamlit as st
 import pickle
 import re
@@ -6,9 +7,12 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import nltk
 
+from sklearn.exceptions import InconsistentVersionWarning
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
+
+warnings.filterwarnings("ignore", category=InconsistentVersionWarning)
 
 # DOWNLOAD NLTK
 nltk.download('punkt')
@@ -50,6 +54,19 @@ def preprocess(text):
     ]
 
     return ' '.join(stemmed)
+
+
+def predict_single(text):
+    processed = preprocess(text)
+    vectorized = vectorizer.transform([processed])
+    return model.predict(vectorized)[0], processed
+
+
+def predict_batch(texts):
+    cleaned_texts = [preprocess(text) for text in texts]
+    vectorized = vectorizer.transform(cleaned_texts)
+    predictions = model.predict(vectorized)
+    return predictions, cleaned_texts
 
 # PAGE CONFIG
 st.set_page_config(
@@ -370,11 +387,10 @@ with tab1:
         col_input, col_examples = st.columns([1.3, 1], gap="small")
         
         with col_input:
-            input_text = st.text_area(
-                "Masukkan teks",
-                "How to control aphid infestation in mustard crop?",
-                height=120,
-                label_visibility="collapsed"
+            input_mode = st.radio(
+                "Mode Input",
+                ["Single Text", "Batch Text", "Upload CSV"],
+                horizontal=True
             )
 
             st.markdown("""
@@ -396,50 +412,124 @@ with tab1:
             </div>
             """, unsafe_allow_html=True)
 
-            if st.button("Analyze Text", use_container_width=True):
-                if input_text.strip():
-                    with st.spinner("⏳"):
-                        processed = preprocess(input_text)
-                        vectorized = vectorizer.transform([processed])
-                        prediction = model.predict(vectorized)[0]
+            if input_mode == "Single Text":
+                input_text = st.text_area(
+                    "Masukkan teks",
+                    "How to control aphid infestation in mustard crop?",
+                    height=120,
+                    label_visibility="collapsed"
+                )
 
-                    st.markdown(f"""
-                    <div class="result-box">
-                        <h2>Kategori Terdeteksi</h2>
-                        <h1>{prediction}</h1>
-                    </div>
-                    """, unsafe_allow_html=True)
+                if st.button("Analyze Text", width="stretch"):
+                    if input_text.strip():
+                        with st.spinner("⏳"):
+                            prediction, processed = predict_single(input_text)
 
-                    # =========================
-                    # NLP PIPELINE
-                    # =========================
-                    st.markdown("## ⚙️ NLP Pipeline")
+                        st.markdown(f"""
+                        <div class="result-box">
+                            <h2>Kategori Terdeteksi</h2>
+                            <h1>{prediction}</h1>
+                        </div>
+                        """, unsafe_allow_html=True)
 
-                    colp1, colp2, colp3, colp4 = st.columns(4)
+                        st.markdown("## ⚙️ NLP Pipeline")
 
-                    with colp1:
-                        st.success("Cleaning")
+                        colp1, colp2, colp3, colp4 = st.columns(4)
 
-                    with colp2:
-                        st.success("Tokenization")
+                        with colp1:
+                            st.success("Cleaning")
 
-                    with colp3:
-                        st.success("Stopword Removal")
+                        with colp2:
+                            st.success("Tokenization")
 
-                    with colp4:
-                        st.success("Stemming")
+                        with colp3:
+                            st.success("Stopword Removal")
 
-                    # PREPROCESSING RESULT
-                    with st.expander("🔍 Preprocessing Result"):
+                        with colp4:
+                            st.success("Stemming")
 
-                        st.markdown("### Original Text")
-                        st.code(input_text)
+                        with st.expander("🔍 Preprocessing Result"):
+                            st.markdown("### Original Text")
+                            st.code(input_text)
 
-                        st.markdown("### Cleaned Text")
-                        st.code(processed)
-  
+                            st.markdown("### Cleaned Text")
+                            st.code(processed)
+                    else:
+                        st.warning("Enter text!")
+
+            elif input_mode == "Batch Text":
+                batch_text = st.text_area(
+                    "Masukkan beberapa teks (satu teks per baris)",
+                    "How to control aphid infestation in mustard crop?\nBest pesticide for aphid control?\nHow to improve crop production?",
+                    height=180,
+                    label_visibility="collapsed"
+                )
+
+                if st.button("Analyze Batch", width="stretch"):
+                    texts = [line.strip() for line in batch_text.splitlines() if line.strip()]
+
+                    if texts:
+                        with st.spinner("⏳"):
+                            predictions, cleaned_texts = predict_batch(texts)
+
+                        result_df = pd.DataFrame({
+                            "text": texts,
+                            "cleaned_text": cleaned_texts,
+                            "predicted_category": predictions
+                        })
+
+                        st.metric("Jumlah Teks", len(result_df))
+                        st.dataframe(result_df, use_container_width=True)
+
+                        csv_data = result_df.to_csv(index=False).encode("utf-8")
+                        st.download_button(
+                            "Download Hasil Batch",
+                            data=csv_data,
+                            file_name="batch_predictions.csv",
+                            mime="text/csv"
+                        )
+                    else:
+                        st.warning("Masukkan minimal satu teks untuk diproses!")
+
+            else:
+                uploaded_file = st.file_uploader("Unggah file CSV", type=["csv"])
+
+                if uploaded_file is not None:
+                    df_upload = pd.read_csv(uploaded_file)
+                    text_columns = [col for col in df_upload.columns if pd.api.types.is_object_dtype(df_upload[col]) or pd.api.types.is_string_dtype(df_upload[col])]
+
+                    if text_columns:
+                        selected_col = st.selectbox("Pilih kolom teks", text_columns)
+
+                        if st.button("Analyze Uploaded CSV", width="stretch"):
+                            texts = [str(text).strip() for text in df_upload[selected_col].fillna("").tolist() if str(text).strip()]
+
+                            if texts:
+                                with st.spinner("⏳"):
+                                    predictions, cleaned_texts = predict_batch(texts)
+
+                                result_df = pd.DataFrame({
+                                    "text": texts,
+                                    "cleaned_text": cleaned_texts,
+                                    "predicted_category": predictions
+                                })
+
+                                st.metric("Jumlah Baris Diproses", len(result_df))
+                                st.dataframe(result_df, use_container_width=True)
+
+                                csv_data = result_df.to_csv(index=False).encode("utf-8")
+                                st.download_button(
+                                    "Download Hasil CSV",
+                                    data=csv_data,
+                                    file_name="uploaded_predictions.csv",
+                                    mime="text/csv"
+                                )
+                            else:
+                                st.warning("Tidak ada teks yang valid dalam file CSV.")
+                    else:
+                        st.warning("File CSV tidak memiliki kolom teks yang bisa diproses.")
                 else:
-                    st.warning("Enter text!")
+                    st.info("Unggah file CSV untuk memprediksi banyak data sekaligus.")
         
         with col_examples:
 
@@ -524,7 +614,9 @@ with tab2:
         sns.barplot(
             x=list(word_freq.keys()),
             y=list(word_freq.values()),
+            hue=list(word_freq.keys()),
             palette="Greens",
+            legend=False,
             ax=ax3
         )
 
@@ -549,7 +641,9 @@ with tab2:
             sns.barplot(
                 x=counts.index,
                 y=counts.values,
+                hue=counts.index,
                 palette="Greens",
+                legend=False,
                 ax=ax1
             )
 
